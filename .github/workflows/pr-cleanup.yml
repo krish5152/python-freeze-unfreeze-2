@@ -1,0 +1,31 @@
+name: PR Cleanup Automation
+
+on:
+  pull_request:
+    types:
+      - closed  # Trigger only when a PR is closed (i.e., merged or manually closed)
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if the PR was merged
+        id: pr_details
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (pr.merged) {
+              return { merged: true, ref: pr.head.ref };
+            } else {
+              return { merged: false };
+            }
+
+      - name: Delete the branch if merged
+        if: steps.pr_details.outputs.merged == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin --delete ${{ steps.pr_details.outputs.ref }}
