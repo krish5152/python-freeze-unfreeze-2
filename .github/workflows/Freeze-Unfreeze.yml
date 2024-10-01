@@ -2,7 +2,7 @@ name: Auto Freeze/Unfreeze Branch
 
 on:
   schedule:
-    - cron: "39 17 * * *"  # Runs at 15:50 UTC every day (adjust the time as per your needs)
+    - cron: "09 18 * * *"  # Runs at 15:50 UTC every day (adjust the time as per your needs)
   workflow_dispatch: # Allows manual triggering of the workflow
 
 env:
@@ -29,15 +29,14 @@ jobs:
           else
             echo "No action required today."
             echo "action_type=none" >> $GITHUB_ENV
-          fi
+
       - name: Freeze the branch (if applicable)
         if: ${{ env.action_type }} == 'freeze'
         run: |
           curl -X PUT \
           -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
           -H "Accept: application/vnd.github.v3+json" \
-           # https://api.github.com/repos/${{ github.repository }}/branches/${{ env.BRANCH_NAME }}/protection \
-          https://api.github.com/repos/krish5152/python-freeze-unfreeze-2/branches/master/protection
+          https://api.github.com/repos/krish5152/python-freeze-unfreeze-2/branches/master/protection \
           -d '{
             "required_status_checks": {
               "strict": true,
@@ -61,7 +60,7 @@ jobs:
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
           -H "Accept: application/vnd.github.v3+json" \
-          # https://api.github.com/repos/${{ github.repository }}/branches/${{ env.BRANCH_NAME }}/protection
           https://api.github.com/repos/krish5152/python-freeze-unfreeze-2/branches/master/protection
+
       - name: Output the action type
         run: echo "Action performed:${{ env.action_type }}"
