@@ -35,7 +35,6 @@ jobs:
         run: |
           curl -X PUT \
           -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
-          # -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/krish5152/python-freeze-unfreeze-2/branches/master/protection \
           -d '{
             "required_status_checks": {
@@ -59,7 +58,6 @@ jobs:
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
-          # -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/krish5152/python-freeze-unfreeze-2/branches/master/protection
 
       - name: Output the action type
