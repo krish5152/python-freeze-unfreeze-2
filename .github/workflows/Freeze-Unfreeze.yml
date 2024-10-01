@@ -2,7 +2,7 @@ name: Auto Freeze/Unfreeze Master Branch
 
 on:
   schedule:
-    - cron: "45 55 * * *"  # Runs at 14:55 UTC today
+    - cron: "5 15 * * *"  # Runs at 15:05 UTC every day
   workflow_dispatch: # Allows manual triggering of the workflow
 
 env:
@@ -31,7 +31,7 @@ jobs:
             echo "action_type=none" >> $GITHUB_ENV
 
       - name: Freeze the master branch (if applicable)
-        if: env.action_type == 'freeze'
+        if: ${{ env.action_type }} == 'freeze'
         run: |
           curl -X PUT \
           -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
@@ -55,7 +55,7 @@ jobs:
           }'
 
       - name: Unfreeze the master branch (if applicable)
-        if: env.action_type == 'unfreeze'
+        if: ${{ env.action_type }} == 'unfreeze'
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
