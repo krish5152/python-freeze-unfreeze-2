@@ -7,7 +7,7 @@ on:
 
 env:
   FREEZE_DATE: "2024-10-01"  # Set to today's date (YYYY-MM-DD)
-  UNFREEZE_DATE: "2024-01-01"  # Placeholder, you can update this later
+  UNFREEZE_DATE: "2024-10-02"  # Placeholder, you can update this later
   BRANCH_NAME: "master"  # The branch you want to freeze (e.g., master)
 
 jobs:
