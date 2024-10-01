@@ -1,0 +1,67 @@
+name: Auto Freeze/Unfreeze Master Branch
+
+on:
+  schedule:
+    - cron: "45 55 * * *"  # Runs at 14:45 UTC today
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+env:
+  FREEZE_DATE: "2024-10-01"  # Set to today's date (YYYY-MM-DD)
+  UNFREEZE_DATE: "2024-01-01"  # Placeholder, you can update this later
+  BRANCH_NAME: "master"  # The branch you want to freeze (e.g., master)
+
+jobs:
+  freeze_unfreeze_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if the current date matches the freeze/unfreeze date
+        id: date-check
+        run: |
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          echo "Current date: $CURRENT_DATE"
+
+          # Check if it's the freeze date
+          if [ "$CURRENT_DATE" == "${{ env.FREEZE_DATE }}" ]; then
+            echo "Freezing branch."
+            echo "action_type=freeze" >> $GITHUB_ENV
+          elif [ "$CURRENT_DATE" == "${{ env.UNFREEZE_DATE }}" ]; then
+            echo "Unfreezing branch."
+            echo "action_type=unfreeze" >> $GITHUB_ENV
+          else
+            echo "No action required today."
+            echo "action_type=none" >> $GITHUB_ENV
+
+      - name: Freeze the master branch (if applicable)
+        if: env.action_type == 'freeze'
+        run: |
+          curl -X PUT \
+          -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/branches/${{ env.BRANCH_NAME }}/protection \
+          -d '{
+            "required_status_checks": {
+              "strict": true,
+              "contexts": []
+            },
+            "enforce_admins": true,
+            "required_pull_request_reviews": {
+              "dismiss_stale_reviews": true,
+              "require_code_owner_reviews": true,
+              "required_approving_review_count": 1
+            },
+            "restrictions": {
+              "users": [],
+              "teams": []
+            }
+          }'
+
+      - name: Unfreeze the master branch (if applicable)
+        if: env.action_type == 'unfreeze'
+        run: |
+          curl -X DELETE \
+          -H "Authorization: token ${{ secrets.FULL_PERMISSION_PAT }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/branches/${{ env.BRANCH_NAME }}/protection
+
+      - name: Output the action type
+        run: echo "Action performed: ${{ env.action_type }}"
