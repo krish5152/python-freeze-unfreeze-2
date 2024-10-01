@@ -2,12 +2,12 @@ name: Auto Freeze/Unfreeze Branch
 
 on:
   schedule:
-    - cron: "50 15 * * *"  # Runs at 15:50 UTC every day (adjust the time as per your needs)
+    - cron: "39 17 * * *"  # Runs at 15:50 UTC every day (adjust the time as per your needs)
   workflow_dispatch: # Allows manual triggering of the workflow
 
 env:
   FREEZE_DATE: "2024-10-01"  # Date to freeze the branch (YYYY-MM-DD)
-  UNFREEZE_DATE: "2024-10-15"  # Date to unfreeze the branch (YYYY-MM-DD)
+  UNFREEZE_DATE: "2024-10-02"  # Date to unfreeze the branch (YYYY-MM-DD)
   BRANCH_NAME: "master"  # Branch to freeze/unfreeze (e.g., master)
 
 jobs:
