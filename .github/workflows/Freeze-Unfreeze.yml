@@ -1,14 +1,14 @@
-name: Auto Freeze/Unfreeze Master Branch
+name: Auto Freeze/Unfreeze Branch
 
 on:
   schedule:
-    - cron: "5 15 * * *"  # Runs at 15:05 UTC every day
+    - cron: "50 15 * * *"  # Runs at 15:50 UTC every day (adjust the time as per your needs)
   workflow_dispatch: # Allows manual triggering of the workflow
 
 env:
-  FREEZE_DATE: "2024-10-01"  # Set to today's date (YYYY-MM-DD)
-  UNFREEZE_DATE: "2024-10-02"  # Placeholder, you can update this later
-  BRANCH_NAME: "master"  # The branch you want to freeze (e.g., master)
+  FREEZE_DATE: "2024-10-01"  # Date to freeze the branch (YYYY-MM-DD)
+  UNFREEZE_DATE: "2024-10-15"  # Date to unfreeze the branch (YYYY-MM-DD)
+  BRANCH_NAME: "master"  # Branch to freeze/unfreeze (e.g., master)
 
 jobs:
   freeze_unfreeze_job:
@@ -30,7 +30,7 @@ jobs:
             echo "No action required today."
             echo "action_type=none" >> $GITHUB_ENV
 
-      - name: Freeze the master branch (if applicable)
+      - name: Freeze the branch (if applicable)
         if: ${{ env.action_type }} == 'freeze'
         run: |
           curl -X PUT \
@@ -54,7 +54,7 @@ jobs:
             }
           }'
 
-      - name: Unfreeze the master branch (if applicable)
+      - name: Unfreeze the branch (if applicable)
         if: ${{ env.action_type }} == 'unfreeze'
         run: |
           curl -X DELETE \
