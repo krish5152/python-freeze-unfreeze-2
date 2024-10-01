@@ -29,7 +29,7 @@ jobs:
           else
             echo "No action required today."
             echo "action_type=none" >> $GITHUB_ENV
-
+          fi
       - name: Freeze the branch (if applicable)
         if: ${{ env.action_type }} == 'freeze'
         run: |
