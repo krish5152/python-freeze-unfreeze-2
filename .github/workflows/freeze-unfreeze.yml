@@ -2,7 +2,7 @@ name: Auto Freeze/Unfreeze Master Branch
 
 on:
   schedule:
-    - cron: "56 15 * * *"  # Runs at 15:50 UTC every day
+    - cron: "59 15 * * *"  # Runs at 15:50 UTC every day
   workflow_dispatch: # Allows manual triggering of the workflow
 
 env:
