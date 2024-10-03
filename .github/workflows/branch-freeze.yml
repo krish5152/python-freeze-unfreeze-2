@@ -16,12 +16,12 @@ jobs:
 
     - name: Get current branch name
       id: get_branch
-      run: echo "::set-output name=branch::$(git rev-parse --abbrev-ref HEAD)"
+      run: echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
 
     - name: Check if branch is frozen (local time)
       run: |
         FROZEN_BRANCH="master"
-        CURRENT_BRANCH="${{ steps.get_branch.outputs.branch }}"
+        CURRENT_BRANCH="${{ env.branch }}"
 
         # Set the timezone to your local timezone (e.g., Asia/Kolkata)
         TZ="Asia/Kolkata"
@@ -31,8 +31,11 @@ jobs:
         CURRENT_DATE_TIME=$(date +'%Y-%m-%d %H:%M')
 
         # Define freeze period (start and end time in your local timezone)
-        FREEZE_START="2024-10-03 10:10"
+        FREEZE_START="2024-10-03 10:30"
         FREEZE_END="2024-10-03 11:00"
+
+        echo "Current date and time: $CURRENT_DATE_TIME"
+        echo "Freeze period: $FREEZE_START to $FREEZE_END"
 
         if [ "$CURRENT_BRANCH" == "$FROZEN_BRANCH" ]; then
           # Check if current time falls within the freeze period
