@@ -14,7 +14,7 @@ jobs:
         id: set_info
         run: |
           BRANCH="master"                 # Blocked branch
-          START_FREEZE="2024-10-03 11:16"
+          START_FREEZE="2024-10-03 11:18"
           END_FREEZE="2024-10-03 11:59"
 
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
