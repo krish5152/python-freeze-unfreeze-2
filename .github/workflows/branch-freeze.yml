@@ -14,7 +14,7 @@ jobs:
         id: set_info
         run: |
           BRANCH="master"                 # Blocked branch
-          START_FREEZE="2024-10-03 11:10"
+          START_FREEZE="2024-10-03 11:13"
           END_FREEZE="2024-10-03 11:59"
 
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
@@ -36,8 +36,30 @@ jobs:
 
           # Check if current time is within the freeze period
           if [[ "$CURRENT_DATE_TIME" > "$START_FREEZE" && "$CURRENT_DATE_TIME" < "$END_FREEZE" ]]; then
-            echo "We are within the freeze period. Exiting with error."
+            echo "We are within the freeze period. Locking the branch."
             exit 1  # Exit with error to block the push
           else
             echo "Outside of freeze period, no action required."
           fi
+
+      - name: Lock the branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.FULL_PERMISSION_PAT }}  # Use your PAT here
+        run: |
+          GITHUB_REPO="${{ github.repository }}"
+          BRANCH="${{ env.BRANCH }}"
+
+          # Lock the branch protection rules to prevent pushes
+          curl -X PUT \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$GITHUB_REPO/branches/$BRANCH/protection \
+            -d '{
+              "required_status_checks": null,
+              "enforce_admins": true,  # Enforce for admins as well
+              "required_pull_request_reviews": {
+                "dismiss_stale_reviews": true,
+                "require_code_owner_reviews": true
+              },
+              "restrictions": null
+            }'
