@@ -41,39 +41,3 @@ jobs:
           else
             echo "Outside of freeze period, no action required."
           fi
-
-      - name: Send email notification
-        env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}  # Store your API key in GitHub Secrets
-        run: |
-          FROM_EMAIL="krishnasmart9527@gmail.com"
-          TO_EMAILS="krishnasmart9527@gmail.com"
-          SUBJECT="Branch freeze notification"
-          BODY="The master branch is currently locked for the freeze period from 11:10 AM to 11:59 AM."
-
-          # Sending the email using SendGrid
-          curl --request POST \
-            --url https://api.sendgrid.com/v3/mail/send \
-            --header "Authorization: Bearer $SENDGRID_API_KEY" \
-            --header 'Content-Type: application/json' \
-            --data '{
-              "personalizations": [
-                {
-                  "to": [
-                    {
-                      "email": "'"$TO_EMAILS"'"
-                    }
-                  ]
-                }
-              ],
-              "from": {
-                "email": "'"$FROM_EMAIL"'"
-              },
-              "subject": "'"$SUBJECT"'",
-              "content": [
-                {
-                  "type": "text/plain",
-                  "value": "'"$BODY"'"
-                }
-              ]
-            }'
