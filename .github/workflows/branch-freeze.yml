@@ -13,8 +13,9 @@ jobs:
       - name: Set branch info
         id: set_info
         run: |
+          GITHUB_REPO="python-freeze-unfreeze-2"
           BRANCH="master"                 # Blocked branch
-          START_FREEZE="2024-10-03 11:18"
+          START_FREEZE="2024-10-03 11:24"
           END_FREEZE="2024-10-03 11:59"
 
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
