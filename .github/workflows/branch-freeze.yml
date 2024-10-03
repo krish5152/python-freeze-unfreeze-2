@@ -38,8 +38,8 @@ jobs:
         echo "Freeze period: $FREEZE_START to $FREEZE_END"
 
         if [ "$CURRENT_BRANCH" == "$FROZEN_BRANCH" ]; then
-          # Check if current time falls within the freeze period
-          if [[ "$CURRENT_DATE_TIME" < "$FREEZE_START" && "$CURRENT_DATE_TIME" < "$FREEZE_END" ]]; then
+          # Correct condition to check if current time is within freeze period
+          if [[ "$CURRENT_DATE_TIME" > "$FREEZE_START" && "$CURRENT_DATE_TIME" < "$FREEZE_END" ]]; then
             echo "Branch is frozen! Pushes are not allowed between $FREEZE_START and $FREEZE_END (local time)."
             exit 1  # Exit with error to fail the pipeline
           else
