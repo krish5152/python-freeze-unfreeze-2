@@ -1,50 +1,79 @@
-name: Branch Freeze Check
+name: Branch Freeze Enforcement
 
 on:
-  push:
-    branches:
-      - master  # Only runs on the 'master' branch
-  workflow_dispatch: # Allows manual trigger if needed
+  workflow_dispatch:
 
 jobs:
-  freeze-check:
+  branch-freeze:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Get current branch name
-      id: get_branch
-      run: echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+      - name: Set branch info
+        id: set_info
+        run: |
+          BRANCH="master"                 # Blocked branch
+          START_FREEZE="2024-10-03 11:10"
+          END_FREEZE="2024-10-03 11:59"
 
-    - name: Check if branch is frozen (local time)
-      run: |
-        FROZEN_BRANCH="master"
-        CURRENT_BRANCH="${{ env.branch }}"
+          echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
+          echo "START_FREEZE=${START_FREEZE}" >> $GITHUB_ENV
+          echo "END_FREEZE=${END_FREEZE}" >> $GITHUB_ENV
 
-        # Set the timezone to your local timezone (e.g., Asia/Kolkata)
-        TZ="Asia/Kolkata"
-        export TZ
+      - name: Get current time
+        id: get_time
+        run: |
+          CURRENT_DATE_TIME=$(TZ="Asia/Kolkata" date +'%Y-%m-%d %H:%M')
+          echo "Current date and time: $CURRENT_DATE_TIME"
+          echo "current_time=$CURRENT_DATE_TIME" >> $GITHUB_ENV
 
-        # Get current date and time in local timezone (format: YYYY-MM-DD HH:MM)
-        CURRENT_DATE_TIME=$(date +'%Y-%m-%d %H:%M')
+      - name: Check freeze period
+        run: |
+          START_FREEZE="${{ env.START_FREEZE }}"
+          END_FREEZE="${{ env.END_FREEZE }}"
+          CURRENT_DATE_TIME="${{ env.current_time }}"
 
-        # Define freeze period (start and end time in your local timezone)
-        FREEZE_START="2024-10-03 10:59"
-        FREEZE_END="2024-10-03 11:00"
-
-        echo "Current date and time: $CURRENT_DATE_TIME"
-        echo "Freeze period: $FREEZE_START to $FREEZE_END"
-
-        if [ "$CURRENT_BRANCH" == "$FROZEN_BRANCH" ]; then
-          # Correct condition to check if current time is within freeze period
-          if [[ "$CURRENT_DATE_TIME" > "$FREEZE_START" && "$CURRENT_DATE_TIME" < "$FREEZE_END" ]]; then
-            echo "Branch is frozen! Pushes are not allowed between $FREEZE_START and $FREEZE_END (local time)."
-            exit 1  # Exit with error to fail the pipeline
+          # Check if current time is within the freeze period
+          if [[ "$CURRENT_DATE_TIME" > "$START_FREEZE" && "$CURRENT_DATE_TIME" < "$END_FREEZE" ]]; then
+            echo "We are within the freeze period. Exiting with error."
+            exit 1  # Exit with error to block the push
           else
-            echo "Push is allowed. Outside of freeze time."
+            echo "Outside of freeze period, no action required."
           fi
-        else
-          echo "Not on the frozen branch."
-        fi
+
+      - name: Send email notification
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}  # Store your API key in GitHub Secrets
+        run: |
+          FROM_EMAIL="krishnasmart9527@gmail.com"
+          TO_EMAILS="krishnasmart9527@gmail.com"
+          SUBJECT="Branch freeze notification"
+          BODY="The master branch is currently locked for the freeze period from 11:10 AM to 11:59 AM."
+
+          # Sending the email using SendGrid
+          curl --request POST \
+            --url https://api.sendgrid.com/v3/mail/send \
+            --header "Authorization: Bearer $SENDGRID_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "personalizations": [
+                {
+                  "to": [
+                    {
+                      "email": "'"$TO_EMAILS"'"
+                    }
+                  ]
+                }
+              ],
+              "from": {
+                "email": "'"$FROM_EMAIL"'"
+              },
+              "subject": "'"$SUBJECT"'",
+              "content": [
+                {
+                  "type": "text/plain",
+                  "value": "'"$BODY"'"
+                }
+              ]
+            }'
