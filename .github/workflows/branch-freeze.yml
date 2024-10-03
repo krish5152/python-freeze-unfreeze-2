@@ -27,7 +27,7 @@ jobs:
         CURRENT_DATE_TIME=$(date +'%Y-%m-%d %H:%M')
 
         # Define freeze period (start and end time)
-        FREEZE_START="2024-10-03 10:25"
+        FREEZE_START="2024-10-03 10:10"
         FREEZE_END="2024-10-03 11:00"
 
         if [ "$CURRENT_BRANCH" == "$FROZEN_BRANCH" ]; then
