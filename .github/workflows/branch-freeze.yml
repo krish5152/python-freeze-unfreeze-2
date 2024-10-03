@@ -10,14 +10,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set branch info
+      - name: Set repository and branch info
         id: set_info
         run: |
-          GITHUB_REPO="python-freeze-unfreeze-2"
-          BRANCH="master"                 # Blocked branch
-          START_FREEZE="2024-10-03 11:24"
+          # Set your GitHub organization and repository
+          GITHUB_ORG="your-github-org"  # Replace with your GitHub organization
+          GITHUB_REPO="python-freeze-unfreeze-2"  # Your repository name
+          BRANCH="master"  # Blocked branch
+          START_FREEZE="2024-10-03 11:30"
           END_FREEZE="2024-10-03 11:59"
 
+          echo "GITHUB_ORG=${GITHUB_ORG}" >> $GITHUB_ENV
+          echo "GITHUB_REPO=${GITHUB_REPO}" >> $GITHUB_ENV
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           echo "START_FREEZE=${START_FREEZE}" >> $GITHUB_ENV
           echo "END_FREEZE=${END_FREEZE}" >> $GITHUB_ENV
@@ -37,30 +41,33 @@ jobs:
 
           # Check if current time is within the freeze period
           if [[ "$CURRENT_DATE_TIME" > "$START_FREEZE" && "$CURRENT_DATE_TIME" < "$END_FREEZE" ]]; then
-            echo "We are within the freeze period. Locking the branch."
-            exit 1  # Exit with error to block the push
+            echo "We are within the freeze period."
           else
             echo "Outside of freeze period, no action required."
+            exit 0
           fi
 
-      - name: Lock the branch
+      - name: Lock the branch in the repository
         env:
           GITHUB_TOKEN: ${{ secrets.FULL_PERMISSION_PAT }}  # Use your PAT here
         run: |
-          GITHUB_REPO="${{ github.repository }}"
-          BRANCH="${{ env.BRANCH }}"
+          # Using GitHub CLI to set branch protection rules
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ env.GITHUB_ORG }}/${{ env.GITHUB_REPO }}/branches/${{ env.BRANCH }}/protection \
+            -F "required_status_checks[strict]=true" \
+            -F "required_status_checks[contexts][]='continuous-integration/travis-ci'" \
+            -F "enforce_admins=true" \
+            -F "required_pull_request_reviews[dismiss_stale_reviews]=true" \
+            -F "required_pull_request_reviews[require_code_owner_reviews]=true" \
+            -F "required_pull_request_reviews[required_approving_review_count]=2" \
+            -F "required_linear_history=true" \
+            -F "lock_branch=true" \
+            -F "allow_force_pushes=true" \
+            -F "allow_deletions=true" \
+            -F "block_creations=true" \
+            -F "required_conversation_resolution=true"
 
-          # Lock the branch protection rules to prevent pushes
-          curl -X PUT \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/$GITHUB_REPO/branches/$BRANCH/protection \
-            -d '{
-              "required_status_checks": null,
-              "enforce_admins": true,  # Enforce for admins as well
-              "required_pull_request_reviews": {
-                "dismiss_stale_reviews": true,
-                "require_code_owner_reviews": true
-              },
-              "restrictions": null
-            }'
+          echo "Successfully set branch protection rules for ${{ env.BRANCH }} in ${{ env.GITHUB_REPO }}."
