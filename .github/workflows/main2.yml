@@ -1,0 +1,30 @@
+name: Add Default Files to Repositories
+
+# Trigger manually or for repository creation (optional)
+on:
+  create:
+    branches:
+      - main
+  workflow_dispatch:  # Allows for manual triggers
+
+jobs:
+  add-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Add default files
+        run: |
+          echo "This is a sample text file." > sample.txt
+          git add sample.txt
+          git commit -m "Add default sample.txt"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
